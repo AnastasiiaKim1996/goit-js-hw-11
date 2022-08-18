@@ -1,123 +1,93 @@
-import './sass/main.scss';
+// - import - //
+
 import axios from 'axios';
-import { Notify } from 'notiflix';
-import { Loading } from 'notiflix';
+import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+import { renderMarkupGallery } from './js/renderImgMarkup';
 
-import debounce from 'lodash/debounce';
-import imagesAPI from './js/api-service';
-import UI from './js/ui-service';
-import getRefs from './js/refs';
-import initModal from './js/modal';
-import smoothScrollAfterRender from './js/scroll';
+// --- variables --- //
 
-const refs = getRefs();
-refs.modal = initModal('.gallery a');
-
-const DEBOUNCE_DELAY = 300;
-const DEBOUNCE_SETTINGS = { leading: true, trailing: false };
-const notifyOptions = {
-  timeout: 4000,
+const refs = {
+  form: document.querySelector('.search-form'),
+  input: document.querySelector('.input'),
+  gallery: document.querySelector('.gallery'),
+  button: document.querySelector('.load-more'),
 };
 
-refs.main.style.marginTop = `${refs.header.clientHeight}px`;
+// --- Fetch Img  --- //
 
-const imageAPI = new imagesAPI();
+const DEFAULT_PAGE = 1;
+let page = DEFAULT_PAGE;
 
-const notifyStatus = imagesCount => {
-  if (imagesCount < 1) {
-    Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.',
-      notifyOptions,
-    );
-    return 1;
-  }
+const perPage = 30;
 
-  if (imageAPI.totalHits > 0 && imageAPI.page === 1) {
-    Notify.success(
-      `Hooray! We found ${imageAPI.totalHits} images.`,
-      notifyOptions,
-    );
-    return 0;
-  }
-};
+async function fetchImages(searchValue) {
+  const searchParams = new URLSearchParams({
+    key: '29338036-8ca2af07466f8459e5d49b2a7',
+    q: searchValue,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: 'true',
+    per_page: perPage,
+    page,
+  });
+  const images = await axios
+    .get(`https://pixabay.com/api/?${searchParams}`)
+    .then((page += 1));
+  return images.data;
+}
 
-const fetchAndRenderImages = async () => {
-  try {
-    const { hits, totalHits } = await imageAPI.getImages();
+function resetPage() {
+  page = DEFAULT_PAGE;
+}
 
-    imageAPI.totalHits = totalHits;
-    imageAPI.totalPages = Math.ceil(imageAPI.totalHits / imageAPI.perPage);
-    imageAPI.currentlyLoaded = imageAPI.perPage * imageAPI.page;
+// --- --- //\
 
-    if (notifyStatus(hits.length)) return;
+let simpleLightbox;
 
-    await UI.renderGallery(hits);
-    smoothScrollAfterRender(imageAPI.page);
+refs.form.addEventListener('submit', onSubmit);
 
-    refs.modal.refresh();
-
-    console.log('fetchAndRenderImages ~ refs.modal', refs.modal);
-
-    if (imageAPI.totalHits > imageAPI.currentlyLoaded) {
-      const waitImgComplete = [...document.images]
-        .filter(img => !img.complete)
-        .map(img => new Promise(res => (img.onload = img.onerror = res)));
-
-      await Promise.all(waitImgComplete);
-      UI.show(refs.loadMoreBtn);
+async function onSubmit(event) {
+  event.preventDefault();
+  searchValue = refs.input.value.trim();
+  if (searchValue === '') {
+    clearAll();
+    buttonHidden();
+    Notiflix.Notify.info('You cannot search by empty field, try again.');
+    return;
+  } else {
+    try {
+      resetPage();
+      const result = await fetchImages(searchValue);
+      if (result.hits < 1) {
+        refs.form.reset();
+        clearAll();
+        buttonHidden();
+        Notiflix.Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+      } else {
+        refs.form.reset();
+        refs.gallery.innerHTML = renderMarkupGallery(result.hits);
+        simpleLightbox = new SimpleLightbox('.gallery a').refresh();
+        buttonUnHidden();
+        Notiflix.Notify.success(`Hooray! We found ${result.totalHits} images.`);
+      }
+    } catch (error) {
+      console.log('error:', error);
     }
-
-    if (imageAPI.totalHits <= imageAPI.currentlyLoaded) {
-      return showPopupEndOfResults();
-    }
-
-    imageAPI.page += 1;
-  } catch (error) {
-    console.error(error);
   }
-};
+}
 
-const showPopupEndOfResults = () => {
-  Notify.info(
-    "We're sorry, but you've reached the end of search results.",
-    notifyOptions,
-  );
-};
+function clearAll() {
+  refs.gallery.innerHTML = '';
+}
 
-const onSubmitGetImages = async e => {
-  e.preventDefault();
-  UI.disable(refs.searchBtn);
+function buttonHidden() {
+  refs.button.classList.add('visually-hidden');
+}
 
-  setTimeout(() => UI.enable(refs.searchBtn), 800);
-
-  UI.hide(refs.loadMoreBtn);
-  UI.clearUI();
-
-  imageAPI.query = e.target.elements.searchQuery.value.trim();
-  imageAPI.page = 1;
-
-  if (imageAPI.query === '')
-    return Notify.info('Please fill in the search field');
-
-  await fetchAndRenderImages();
-};
-
-const onLoadMore = async e => {
-  UI.hide(refs.loadMoreBtn);
-
-  await fetchAndRenderImages();
-};
-
-const onImageClick = async e => {
-  e.preventDefault();
-};
-
-refs.searchForm.addEventListener(
-  'submit',
-  debounce(onSubmitGetImages, DEBOUNCE_DELAY, DEBOUNCE_SETTINGS),
-);
-refs.loadMoreBtn.addEventListener(
-  'click',
-  debounce(onLoadMore, DEBOUNCE_DELAY, DEBOUNCE_SETTINGS),
-);
-refs.gallery.addEventListener('click', onImageClick);
+function buttonUnHidden() {
+  refs.button.classList.remove('visually-hidden');
+}

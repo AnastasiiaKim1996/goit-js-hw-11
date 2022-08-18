@@ -3,29 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <meta
-      http-equiv="Content-Security-Policy"
-      content="upgrade-insecure-requests"
-    /> -->
-
-    <title>Goit-js-hw-11</title>
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/1.1.0/modern-normalize.min.css"
-      integrity="sha512-wpPYUAdjBVSE4KJnH1VR1HeZfpl1ub8YT/NKx4PuQ5NmX2tKuGu6U/JRp5y+Y8XG2tV+wKQpNHVUX03MfMFn9Q=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
+    <title>Page title</title>
+    <link rel="stylesheet" href="./css/styles.css" />
   </head>
-
   <body>
-    <include src="./partials/header.html"></include>
+    <div class="container">
+      <form class="search-form" id="search-form">
+        <a href="" class="search-link" title=""
+          ><h1 class="search-title">
+            Image <span class="blue">S</span><span class="red">e</span
+            ><span class="yellow">a</span><span class="blue">r</span
+            ><span class="green">c</span><span class="red">h</span>
+          </h1></a
+        >
 
-    <main>
-      <include src="./partials/gallery.html"></include>
-    </main>
+        <div class="input-wrap">
+          <input
+            type="text"
+            name="searchQuery"
+            autocomplete="off"
+            placeholder="Search images..."
+            class="input"
+          />
+          <button type="submit" class="search">
+            <svg class="icon">
+              <use href="./images/symbol-defs.svg#icon-search"></use>
+            </svg>
+          </button>
+        </div>
+      </form>
 
-    <script src="./index.js"></script>
+      <div class="gallery"></div>
+
+      <button type="button" class="load-more visually-hidden">
+        Load more
+        <svg class="icon">
+          <use href="./images/symbol-defs.svg#icon-image"></use>
+        </svg>
+      </button>
+
+      <a class="btn-to-top" title="Return to top">
+        <svg class="icon">
+          <use href="./images/symbol-defs.svg#icon-arrow-up2"></use>
+        </svg>
+      </a>
+
+      <div class="scroll-guard"></div>
+    </div>
+
+    <script src="index.js" type="module"></script>
   </body>
 </html>
