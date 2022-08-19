@@ -5,6 +5,7 @@ import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { renderMarkupGallery } from './js/renderImgMarkup';
+import { onScroll, onToTopBtn } from './js/scroll';
 
 // --- variables --- //
 
@@ -20,7 +21,7 @@ const refs = {
 const DEFAULT_PAGE = 1;
 let page = DEFAULT_PAGE;
 
-const perPage = 30;
+const perPage = 40;
 
 async function fetchImages(searchValue) {
   const searchParams = new URLSearchParams({
@@ -42,37 +43,40 @@ function resetPage() {
   page = DEFAULT_PAGE;
 }
 
-// --- --- //\
+// --- Form submit --- //
 
-let simpleLightbox;
+let searchValue = '';
 
-refs.form.addEventListener('submit', onSubmit);
+refs.form.addEventListener('submit', onFormSubmit);
+refs.button.addEventListener('click', onBtnClickLoadMore);
 
-async function onSubmit(event) {
+async function onFormSubmit(event) {
   event.preventDefault();
   searchValue = refs.input.value.trim();
   if (searchValue === '') {
-    clearAll();
-    buttonHidden();
+    clearGallery();
+    buttonIsHidden();
     Notiflix.Notify.info('You cannot search by empty field, try again.');
     return;
   } else {
     try {
       resetPage();
-      const result = await fetchImages(searchValue);
-      if (result.hits < 1) {
+      const valueResult = await fetchImages(searchValue);
+      if (valueResult.hits < 1) {
         refs.form.reset();
-        clearAll();
-        buttonHidden();
+        clearGallery();
+        buttonIsHidden();
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       } else {
         refs.form.reset();
-        refs.gallery.innerHTML = renderMarkupGallery(result.hits);
+        refs.gallery.innerHTML = renderMarkupGallery(valueResult.hits);
         simpleLightbox = new SimpleLightbox('.gallery a').refresh();
-        buttonUnHidden();
-        Notiflix.Notify.success(`Hooray! We found ${result.totalHits} images.`);
+        buttonIsNotHidden();
+        Notiflix.Notify.success(
+          `Hooray! We found ${valueResult.totalHits} images.`
+        );
       }
     } catch (error) {
       console.log('error:', error);
@@ -80,14 +84,61 @@ async function onSubmit(event) {
   }
 }
 
-function clearAll() {
+// --- multiple functions --- //
+
+function clearGallery() {
   refs.gallery.innerHTML = '';
 }
 
-function buttonHidden() {
+function buttonIsHidden() {
   refs.button.classList.add('visually-hidden');
 }
 
-function buttonUnHidden() {
+function buttonIsNotHidden() {
   refs.button.classList.remove('visually-hidden');
+}
+
+// --- Btn Load more --- //
+
+async function onBtnClickLoadMore() {
+  page += 1;
+  try {
+    const totalPages = page * perPage;
+    const valueResult = await fetchImages(searchValue, page, perPage);
+    console.log('totalPages:', totalPages);
+    if (valueResult.totalHits <= totalPages) {
+      buttonIsHidden();
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
+    refs.gallery.insertAdjacentHTML(
+      'beforeend',
+      renderMarkupGallery(valueResult.hits)
+    );
+    smothScroll();
+    simpleLightbox = new SimpleLightbox('.gallery a', valueOptionsSL).refresh();
+  } catch (error) {
+    console.log('error:', error);
+  }
+}
+const valueOptionsSL = {
+  overlayOpacity: 0.5,
+  captionsData: 'alt',
+  captionDelay: 250,
+};
+
+// --- Smoth Scroll --- //
+
+onScroll();
+onToTopBtn();
+
+function smothScroll() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery-img-wrapper')
+    .firstElementChild.getBoundingClientRect();
+  window.scrollBy({
+    top: cardHeight * 3.9,
+    behavior: 'smooth',
+  });
 }
