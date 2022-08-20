@@ -46,6 +46,7 @@ function resetPage() {
 // --- Form submit --- //
 
 let searchValue = '';
+let SimpleLightbox;
 
 refs.form.addEventListener('submit', onFormSubmit);
 refs.button.addEventListener('click', onBtnClickLoadMore);
