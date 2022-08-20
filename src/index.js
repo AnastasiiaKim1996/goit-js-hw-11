@@ -6,6 +6,11 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { renderMarkupGallery } from './js/renderImgMarkup';
 import { onScroll, onToTopBtn } from './js/scroll';
+import {
+  clearGallery,
+  buttonIsHidden,
+  buttonIsNotHidden,
+} from './js/multipleFunction';
 
 // --- variables --- //
 
@@ -38,7 +43,6 @@ async function fetchImages(searchValue) {
     .then((page += 1));
   return images.data;
 }
-
 function resetPage() {
   page = DEFAULT_PAGE;
 }
@@ -83,20 +87,6 @@ async function onFormSubmit(event) {
       console.log('error:', error);
     }
   }
-}
-
-// --- multiple functions --- //
-
-function clearGallery() {
-  refs.gallery.innerHTML = '';
-}
-
-function buttonIsHidden() {
-  refs.button.classList.add('visually-hidden');
-}
-
-function buttonIsNotHidden() {
-  refs.button.classList.remove('visually-hidden');
 }
 
 // --- Button Load more --- //
