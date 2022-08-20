@@ -57,7 +57,7 @@ async function onFormSubmit(event) {
   if (searchValue === '') {
     clearGallery();
     buttonIsHidden();
-    Notiflix.Notify.info('You cannot search by empty field, try again.');
+    Notify.info('You cannot search by empty field, try again.');
     return;
   } else {
     try {
@@ -67,7 +67,7 @@ async function onFormSubmit(event) {
         refs.form.reset();
         clearGallery();
         buttonIsHidden();
-        Notiflix.Notify.failure(
+        Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       } else {
@@ -109,9 +109,7 @@ async function onBtnClickLoadMore() {
     console.log('totalPages:', totalPages);
     if (valueResult.totalHits <= totalPages) {
       buttonIsHidden();
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
+      Notify.info("We're sorry, but you've reached the end of search results.");
     }
     refs.gallery.insertAdjacentHTML(
       'beforeend',
