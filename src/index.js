@@ -103,6 +103,7 @@ function buttonIsNotHidden() {
 
 async function onBtnClickLoadMore() {
   page += 1;
+  simpleLightbox.destroy();
   try {
     const totalPages = page * perPage;
     const valueResult = await fetchImages(searchValue, page, perPage);
