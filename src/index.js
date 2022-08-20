@@ -50,7 +50,7 @@ function resetPage() {
 // --- Form submit --- //
 
 let searchValue = '';
-let SimpleLightbox;
+let simpleLightbox = null;
 
 refs.form.addEventListener('submit', onFormSubmit);
 refs.button.addEventListener('click', onBtnClickLoadMore);
