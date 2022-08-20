@@ -99,7 +99,7 @@ function buttonIsNotHidden() {
   refs.button.classList.remove('visually-hidden');
 }
 
-// --- Btn Load more --- //
+// --- Button Load more --- //
 
 async function onBtnClickLoadMore() {
   page += 1;
